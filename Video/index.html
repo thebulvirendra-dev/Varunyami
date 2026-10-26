@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wedding Invitation</title>
+
+<style>
+  :root {
+    --gold: #c6a15b;
+    --ink: #2a241c;
+    --card: rgba(255, 250, 242, 0.97);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: #111;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .video-container {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: auto;
+    background: #000;
+  }
+
+  #video {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Map start position (Bottom se 15% par chhupa rahega) */
+  .location {
+    position: absolute;
+    left: 50%;
+    bottom: 15%; 
+    z-index: 5;
+    width: min(76.5%, 442px); /* 15% Small Width */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%);
+    transition: opacity 0.6s ease, bottom 0.6s ease, visibility 0.6s ease;
+  }
+
+  /* Map jab dikhega toh exactly bottom se 20% margin par aayega */
+  .location.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    bottom: 30%; 
+    transform: translateX(-50%);
+  }
+
+  .location-card {
+    overflow: hidden;
+    background: var(--card);
+    border: 1px solid #f0e2c4;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  }
+
+  .location-label {
+    margin: 0;
+    padding: 12px 16px 0;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: normal;
+    letter-spacing: 0.22em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .location-card iframe {
+    display: block;
+    width: 100%;
+    height: 238px; /* 15% Small Height */
+    border: 0;
+  }
+
+  @media (max-width: 480px) {
+    .location {
+      width: min(78%, 374px); /* 15% Small Mobile Width */
+    }
+
+    .location-label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+    }
+
+    .location-card iframe {
+      height: 178px; /* 15% Small Mobile Height */
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .location {
+      transition: none;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="video-container">
+    <video id="video" controls playsinline preload="metadata">
+      <source src="./Video.mp4" type="video/mp4">
+      Your browser does not support video playback.
+    </video>
+
+    <div id="location" class="location" aria-hidden="true">
+      <div class="location-card">
+        <p class="location-label">Location</p>
+        <iframe
+          title="Wedding venue map"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.9336449616876!2d82.98544780000002!3d25.2728175!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x398e3225999b5ce7%3A0x20f1905acc93a780!2sUniversity%20Club!5e0!3m2!1sen!2sin!4v1792998077833!5m2!1sen!2sin"
+          loading="lazy"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById("video");
+    const locationBox = document.getElementById("location");
+
+    const SHOW_BEFORE_END_SECONDS = 18;
+    const VISIBLE_MS = 5000;
+    let hideTimer = null;
+    let shown = false;
+
+    function showLocation() {
+      if (shown) return;
+      shown = true;
+      locationBox.classList.add("is-visible");
+      locationBox.setAttribute("aria-hidden", "false");
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(hideLocation, VISIBLE_MS);
+    }
+
+    function hideLocation() {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+      locationBox.classList.remove("is-visible");
+      locationBox.setAttribute("aria-hidden", "true");
+    }
+
+    function resetLocation() {
+      shown = false;
+      hideLocation();
+    }
+
+    function syncLocation() {
+      const duration = video.duration;
+      if (!Number.isFinite(duration) || duration <= 0) return;
+
+      const showAt = Math.max(0, duration - SHOW_BEFORE_END_SECONDS);
+
+      if (video.currentTime < showAt) {
+        if (shown) resetLocation();
+        return;
+      }
+
+      showLocation();
+    }
+
+    video.addEventListener("timeupdate", syncLocation);
+    video.addEventListener("seeked", syncLocation);
+    video.addEventListener("ended", showLocation);
+  </script>
+</body>
+</html>s
